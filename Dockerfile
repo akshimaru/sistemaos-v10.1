@@ -15,12 +15,15 @@ ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_APP_ENV=$VITE_APP_ENV
 ENV VITE_APP_VERSION=$VITE_APP_VERSION
 
+# Install system dependencies for Alpine Linux
+RUN apk add --no-cache python3 make g++
+
 # Copy package files explicitly (garantindo sincronização)
 COPY package.json ./
 COPY package-lock.json ./
 
-# Install dependencies (npm ci com lockfile sincronizado)
-RUN npm ci
+# Install dependencies (correção para bug do npm com dependências opcionais no Alpine)
+RUN rm -rf node_modules package-lock.json && npm install
 
 # Copy arquivos de configuração
 COPY tsconfig*.json ./
