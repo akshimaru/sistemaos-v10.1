@@ -1,0 +1,41 @@
+# EasyPanel Configuration
+name: sistema-os-luthieria
+description: Sistema completo de gestão para luthieria com ordens de serviço e controle financeiro
+
+# Application configuration
+app:
+  type: docker
+  dockerfile: Dockerfile
+  port: 80
+  
+# Environment variables (configure these in EasyPanel dashboard)
+env:
+  - name: VITE_SUPABASE_URL
+    description: URL do projeto Supabase
+    required: true
+  - name: VITE_SUPABASE_ANON_KEY
+    description: Chave anônima do Supabase
+    required: true
+
+# Health check
+healthcheck:
+  path: /
+  interval: 30
+  timeout: 10
+  retries: 3
+
+# Resource limits
+resources:
+  memory: 512Mi
+  cpu: 0.5
+
+# Scaling configuration
+scaling:
+  min: 1
+  max: 3
+  target_cpu: 70
+
+# Domain configuration (configure in EasyPanel dashboard)
+domains:
+  - name: your-domain.com
+    ssl: true
