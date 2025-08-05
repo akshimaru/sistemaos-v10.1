@@ -2,7 +2,7 @@
 
 Sistema completo de gerenciamento de ordem de serviço para luthieria com integração WhatsApp, controle financeiro e configurações centralizadas.
 
-[Edit in StackBlitz ⚡️](https://stackblitz.com/~/github.com/akshimaru/sistema-os-financeiro-completo-v10)
+🚀 **Versão de produção pronta para deploy no EasyPanel**
 
 ## ✨ Funcionalidades Principais
 
