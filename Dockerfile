@@ -19,8 +19,8 @@ ENV VITE_APP_VERSION=$VITE_APP_VERSION
 COPY package.json ./
 COPY package-lock.json ./
 
-# Install dependencies (npm install é mais tolerante a desalinhamentos)
-RUN npm install
+# Install dependencies (npm ci com lockfile sincronizado)
+RUN npm ci
 
 # Copy arquivos de configuração
 COPY tsconfig*.json ./
