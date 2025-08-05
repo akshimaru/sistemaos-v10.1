@@ -199,6 +199,65 @@ export class WhatsAppService {
     TemplateService.clearCache();
   }
 
+  // Método para enviar solicitação de avaliação
+  static async sendEvaluationRequest(ordem: any): Promise<void> {
+    try {
+      // Carregar configurações da empresa
+      const empresaConfig = await this.loadEmpresaConfig();
+      
+      // Criar objeto de dados com informações da empresa incluídas
+      const templateData = {
+        ...ordem,
+        google_review_link: empresaConfig?.google_review_link || 'https://g.page/r/SEU_PERFIL_GOOGLE/review',
+        instagram_handle: empresaConfig?.instagram_handle || '@sua_luthieria',
+        nome_empresa: empresaConfig?.nome_empresa || 'Luthieria'
+      };
+
+      // Processar template com variáveis
+      const message = await TemplateService.processTemplate('avaliacao_google_instagram', templateData, empresaConfig);
+
+      // Enviar mensagem
+      await this.sendMessage(ordem.cliente?.telefone, message);
+      
+    } catch (error: any) {
+      console.error('Erro ao enviar solicitação de avaliação:', error);
+      throw error;
+    }
+  }
+
+  // Método para enviar lembrete de manutenção
+  static async sendMaintenanceReminder(ordem: any): Promise<void> {
+    try {
+      if (!ordem.cliente?.telefone) {
+        throw new Error('Cliente não possui telefone cadastrado');
+      }
+
+      // Carregar configurações da empresa
+      const empresaConfig = await this.loadEmpresaConfig();
+      
+      // Criar objeto de dados com informações específicas do lembrete
+      const templateData = {
+        ...ordem,
+        meses_sem_manutencao: ordem.meses_desde_ultima || 5,
+        ultimo_servico: new Date(ordem.data_previsao).toLocaleDateString('pt-BR'),
+        nome_empresa: empresaConfig?.nome_empresa || 'Luthieria',
+        telefone_empresa: empresaConfig?.telefone || '',
+        horario_funcionamento: empresaConfig?.horario_funcionamento || '09:00 às 18:00',
+        dias_funcionamento: empresaConfig?.dias_funcionamento || 'Segunda a Sexta'
+      };
+
+      // Processar template com variáveis
+      const message = await TemplateService.processTemplate('lembrete_manutencao', templateData, empresaConfig);
+
+      // Enviar mensagem
+      await this.sendMessage(ordem.cliente.telefone, message);
+      
+    } catch (error: any) {
+      console.error('Erro ao enviar lembrete de manutenção:', error);
+      throw error;
+    }
+  }
+
   // Método para reabilitar o logging WhatsApp
   static enableWhatsAppLogging(): void {
     this.enableLogging = true;

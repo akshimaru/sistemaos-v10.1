@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { PenTool as Tool, Search, Plus, Trash2, ChevronLeft, ChevronRight, Send, Edit, Printer } from 'lucide-react';
+import { PenTool as Tool, Search, Plus, Trash2, ChevronLeft, ChevronRight, Send, Edit, Printer, Star, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { toast } from '../components/ToastCustom';
@@ -7,6 +7,7 @@ import { alerts } from '../utils/alerts';
 import { formatDate } from '../utils/formatters';
 import { WhatsAppService } from '../utils/whatsapp-service';
 import { PrintOrdemModal } from '../components/PrintOrdemModal';
+import { MaintenanceReminderModal } from '../components/MaintenanceReminderModal';
 import type { OrdemServico } from '../types/database';
 import {
   useReactTable,
@@ -24,6 +25,7 @@ export function Ordens() {
   const [pagina, setPagina] = useState(0);
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [ordemParaImprimir, setOrdemParaImprimir] = useState<OrdemServico | null>(null);
+  const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
   const itensPorPagina = 10;
 
   async function buscarOrdens() {
@@ -133,18 +135,50 @@ export function Ordens() {
       header: 'Ações',
       id: 'acoes',
       cell: info => (
-        <div className="flex items-center justify-end space-x-3">
-          <button onClick={() => navigate(`/ordens/editar/${info.row.original.id}`)} className="p-2 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded-lg transition-all duration-200">
-            <Edit className="w-5 h-5" />
+        <div className="flex items-center justify-end space-x-2">
+          <button 
+            onClick={() => navigate(`/ordens/editar/${info.row.original.id}`)} 
+            className="p-2 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded-lg transition-all duration-200"
+            title="Editar ordem"
+          >
+            <Edit className="w-4 h-4" />
           </button>
-          <button onClick={() => { setOrdemParaImprimir(info.row.original); setShowPrintModal(true); }} className="p-2 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded-lg transition-all duration-200">
-            <Printer className="w-5 h-5" />
+          
+          <button 
+            onClick={() => { setOrdemParaImprimir(info.row.original); setShowPrintModal(true); }} 
+            className="p-2 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded-lg transition-all duration-200"
+            title="Imprimir ordem"
+          >
+            <Printer className="w-4 h-4" />
           </button>
-          <button onClick={() => handleWhatsAppShare(info.row.original)} className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-all duration-200">
-            <Send className="w-5 h-5" />
+          
+          <button 
+            onClick={() => handleWhatsAppShare(info.row.original)} 
+            className="p-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-all duration-200"
+            title="Enviar mensagem WhatsApp"
+          >
+            <Send className="w-4 h-4" />
           </button>
-          <button onClick={() => handleExcluir(info.row.original)} className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-all duration-200">
-            <Trash2 className="w-5 h-5" />
+          
+          <button 
+            onClick={() => handleSendEvaluationRequest(info.row.original)} 
+            className={`p-2 rounded-lg transition-all duration-200 ${
+              info.row.original.status === 'concluido' 
+                ? 'text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50' 
+                : 'text-gray-400 cursor-not-allowed'
+            }`}
+            title={info.row.original.status === 'concluido' ? 'Solicitar avaliação' : 'Disponível apenas para ordens concluídas'}
+            disabled={info.row.original.status !== 'concluido'}
+          >
+            <Star className="w-4 h-4" />
+          </button>
+          
+          <button 
+            onClick={() => handleExcluir(info.row.original)} 
+            className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-all duration-200"
+            title="Excluir ordem"
+          >
+            <Trash2 className="w-4 h-4" />
           </button>
         </div>
       ),
@@ -233,6 +267,26 @@ export function Ordens() {
     }
   }
 
+  async function handleSendEvaluationRequest(ordem: OrdemServico) {
+    if (!ordem.cliente) {
+      toast.error('Cliente não encontrado');
+      return;
+    }
+
+    if (!ordem.cliente.telefone) {
+      toast.error('Cliente não possui telefone cadastrado');
+      return;
+    }
+
+    try {
+      await WhatsAppService.sendEvaluationRequest(ordem);
+      toast.success('Solicitação de avaliação enviada com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao enviar solicitação de avaliação:', error);
+      toast.error('Erro ao enviar solicitação de avaliação: ' + error.message);
+    }
+  }
+
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -258,13 +312,22 @@ export function Ordens() {
                 />
               </div>
             </div>
-            <button
-              onClick={() => navigate('/ordens/nova')}
-              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-300 flex items-center space-x-2 shadow-lg shadow-purple-200"
-            >
-              <Plus className="w-5 h-5" />
-              <span>Nova Ordem</span>
-            </button>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowMaintenanceModal(true)}
+                className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-medium rounded-lg transition-all duration-300 flex items-center space-x-2 shadow-lg shadow-yellow-200"
+              >
+                <Clock className="w-5 h-5" />
+                <span>Lembretes Manutenção</span>
+              </button>
+              <button
+                onClick={() => navigate('/ordens/nova')}
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-300 flex items-center space-x-2 shadow-lg shadow-purple-200"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Nova Ordem</span>
+              </button>
+            </div>
           </div>
         </div>
         <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg overflow-hidden border border-gray-100">
@@ -331,6 +394,11 @@ export function Ordens() {
           ordem={ordemParaImprimir}
         />
       )}
+
+      <MaintenanceReminderModal
+        isOpen={showMaintenanceModal}
+        onClose={() => setShowMaintenanceModal(false)}
+      />
     </div>
   );
 }
