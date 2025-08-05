@@ -1,0 +1,18 @@
+# Configuração Nixpacks para Sistema OS Luthieria v10
+# Para plataformas como Railway, Render, etc.
+
+[variables]
+NODE_VERSION = "18"
+PORT = "8080"
+
+[phases.setup]
+nixPkgs = ["nodejs-18_x"]
+
+[phases.install]
+cmd = "npm ci"
+
+[phases.build] 
+cmd = "npm run build"
+
+[start]
+cmd = "npx serve dist -s -l $PORT"
