@@ -1,4 +1,4 @@
-# Build stage
+# Para forçar o EasyPanel a usar Docker em vez de Nixpacks
 FROM node:18-alpine AS builder
 
 WORKDIR /app
@@ -15,13 +15,13 @@ ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_APP_ENV=$VITE_APP_ENV
 ENV VITE_APP_VERSION=$VITE_APP_VERSION
 
-# Copy package files
+# Copy apenas os arquivos essenciais primeiro
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm ci --only=production=false
 
-# Copy apenas arquivos necessários para o build
+# Copy apenas o código fonte necessário
 COPY src/ ./src/
 COPY index.html ./
 COPY vite.config.ts ./

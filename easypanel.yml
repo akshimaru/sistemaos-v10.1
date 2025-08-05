@@ -16,8 +16,19 @@ env:
   - name: VITE_SUPABASE_ANON_KEY
     description: Chave anônima do Supabase
     required: true
+  - name: VITE_APP_ENV
+    description: Ambiente da aplicação
+    default: production
+  - name: VITE_APP_VERSION
+    description: Versão da aplicação
+    default: "1.0.0"
 
 # Health check
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:80"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
 healthcheck:
   path: /
   interval: 30

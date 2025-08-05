@@ -1,0 +1,5 @@
+# EasyPanel deve usar este Dockerfile e ignorar Nixpacks
+# Este arquivo força o uso do Docker build
+
+# Configurações específicas para produção
+DOCKER_BUILDKIT=1

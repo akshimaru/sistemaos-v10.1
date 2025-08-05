@@ -1,5 +1,5 @@
 # Configuração Nixpacks para Sistema OS Luthieria v10
-# Para plataformas como Railway, Render, etc.
+# Para plataformas como Railway, Render, EasyPanel etc.
 
 [variables]
 NODE_VERSION = "18"
@@ -16,3 +16,8 @@ cmd = "npm run build"
 
 [start]
 cmd = "npx serve dist -s -l $PORT"
+
+# Desabilitar detecção automática de outras linguagens
+[providers]
+node = true
+deno = false
