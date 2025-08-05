@@ -15,19 +15,22 @@ ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_APP_ENV=$VITE_APP_ENV
 ENV VITE_APP_VERSION=$VITE_APP_VERSION
 
-# Copy package files
-COPY package*.json ./
+# Copy package files explicitly (garantindo sincronização)
+COPY package.json ./
+COPY package-lock.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies primeiro (para melhor cache do Docker)
+RUN npm ci --only=production=false
 
-# Copy apenas arquivos necessários para o build
-COPY src/ ./src/
-COPY index.html ./
-COPY vite.config.ts ./
+# Copy arquivos de configuração
 COPY tsconfig*.json ./
+COPY vite.config.ts ./
 COPY tailwind.config.js ./
 COPY postcss.config.js ./
+COPY index.html ./
+
+# Copy código fonte
+COPY src/ ./src/
 
 # Build the application
 RUN npm run build
