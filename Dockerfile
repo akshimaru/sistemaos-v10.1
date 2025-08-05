@@ -19,8 +19,8 @@ ENV VITE_APP_VERSION=$VITE_APP_VERSION
 COPY package.json ./
 COPY package-lock.json ./
 
-# Install dependencies primeiro (para melhor cache do Docker)
-RUN npm ci --only=production=false
+# Install dependencies (npm install é mais tolerante a desalinhamentos)
+RUN npm install
 
 # Copy arquivos de configuração
 COPY tsconfig*.json ./
